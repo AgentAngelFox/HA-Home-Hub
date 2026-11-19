@@ -4,8 +4,4 @@ services:
       context: .
     ports:
       - "${HUB_PORT:-8080}:80"
-    environment:
-      HA_URL: ${HA_URL:-}
-      HA_ACCESS_TOKEN: ${HA_ACCESS_TOKEN:-}
-      HUB_DISPLAY_IPS: ${HUB_DISPLAY_IPS:-}
     restart: unless-stopped
