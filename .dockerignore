@@ -1,3 +1,5 @@
 *
 !Dockerfile
 !hub.html
+!server.py
+!requirements.txt

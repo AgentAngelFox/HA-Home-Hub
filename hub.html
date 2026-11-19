@@ -154,13 +154,7 @@ input[type=range]{width:100%;height:2rem;accent-color:#f9ab00}
 <div class="ov" id="sheet"><div id="sh"><button id="sback"></button><span id="st"></span></div><div id="sb"></div></div>
 <div class="ov" id="wxo"><button id="wxb"></button><div id="wxs"></div></div>
 <div id="drw"></div>
-<div id="setup"><form id="f">
-  <h2 style="font-weight:400">Connect to Home Assistant</h2>
-  <small>Create a long-lived access token in your Home Assistant profile.</small>
-  <input id="u" placeholder="Home Assistant address, e.g. http://homeassistant.local:8123">
-  <input type="password" id="t" placeholder="Long-lived access token">
-  <button>Save and connect</button>
-</form></div>
+<div id="setup" role="status" style="display:grid;place-items:center">Connecting to Home Assistant…</div>
 
 <script>
 const I={light:"M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z",
@@ -191,7 +185,7 @@ const WI={sunny:'☀️','clear-night':'🌙',cloudy:'☁️',partlycloudy:'⛅'
 let cfg={};try{cfg=JSON.parse(localStorage.hubCfg||'{}')}catch(e){}
 cfg.areas=cfg.areas||[];cfg.hidden=cfg.hidden||[];cfg.extra=cfg.extra||[];
 const save=()=>{try{localStorage.hubCfg=JSON.stringify(cfg)}catch(e){}};
-let ws,mid=1,pend={},S={},reg={},ent2area={},areas=[],fcD=[],fcH=[],fcIds={},loc='',edit=false,cid,built=false,maE,sheetCb,cur=0;
+let haUrl='',ws,mid=1,pend={},S={},reg={},ent2area={},areas=[],fcD=[],fcH=[],fcIds={},loc='',edit=false,cid,built=false,maE,sheetCb,cur=0;
 let weatherSpeechToken=0, weatherSpeechWatch=null;
 const nm=i=>(S[i]&&S[i].attributes.friendly_name)||i;
 const aName=i=>(areas.find(a=>a.area_id===ent2area[i])||{}).name||'';
@@ -208,21 +202,18 @@ function swipe(el,h){let x,y,t;
     else{if(dy>80&&h.down&&atTop(t,el))h.down();if(dy<-60&&h.up)h.up()}},{passive:true})}
 
 /* ---------- setup + connection ---------- */
-if(location.hash==='#setup'||!cfg.token){
-  $('#setup').style.display='grid';
-  $('#u').value=cfg.url||(location.protocol.indexOf('http')===0?location.origin:'');$('#t').value=cfg.token||'';
-  $('#f').onsubmit=e=>{e.preventDefault();cfg.url=$('#u').value.trim().replace(/\/$/,'');cfg.token=$('#t').value.trim();save();location.hash='';location.reload()};
-}else connect();
+delete cfg.token;
+delete cfg.url;
+save();
+connect();
 
 const send=o=>new Promise(r=>{o.id=mid++;pend[o.id]=r;ws.send(JSON.stringify(o))});
 const call=(d,s,data)=>ws.send(JSON.stringify({id:mid++,type:'call_service',domain:d,service:s,service_data:data}));
 function connect(){
-  ws=new WebSocket(cfg.url.replace(/^http/,'ws')+'/api/websocket');
-  ws.onclose=()=>setTimeout(connect,4000);
+  ws=new WebSocket(location.origin.replace(/^http/,'ws')+'/api/websocket');
+  ws.onclose=()=>{ $('#setup').textContent='Home Assistant is unavailable. Check the hub settings in Arcane.'; $('#setup').style.display='grid'; setTimeout(connect,4000) };
   ws.onmessage=e=>{const m=JSON.parse(e.data);
-    if(m.type==='auth_required')ws.send(JSON.stringify({type:'auth',access_token:cfg.token}));
-    else if(m.type==='auth_invalid'){cfg.token='';save();location.hash='#setup';location.reload()}
-    else if(m.type==='auth_ok')init();
+    if(m.type==='auth_ok'){ haUrl=m.ha_url; $('#setup').style.display='none'; init() }
     else if(m.type==='result'&&pend[m.id]){pend[m.id](m.result);delete pend[m.id]}
     else if(m.type==='event'){
       if(fcIds[m.id]){(fcIds[m.id]==='daily'?(fcD=m.event.forecast||[]):(fcH=m.event.forecast||[]));rr()}
@@ -406,7 +397,7 @@ function openCat(k){
   listSheet('Rooms',areas.map(a=>{const g=Object.keys(S).filter(i=>TD.indexOf(dom(i))>-1&&vis(i)&&ent2area[i]===a.area_id&&okBS(i));
     return{ico:'bed',col:'#5f6368',name:a.name,sub:g.length+' devices',tap:()=>{const gr=E('div','tg');g.forEach(i=>gr.append(tileEl(i)));openSheet(a.name,gr)}}}))}
 function camSheet(i){const a=S[i].attributes,im=E('img');im.style.cssText='width:100%;border-radius:1rem';
-  const u=()=>{im.src=cfg.url+(a.entity_picture||'').replace(/&t=\d+/,'')+(a.entity_picture&&a.entity_picture.indexOf('?')>-1?'&':'?')+'t='+Date.now()};u();const tm=setInterval(u,3000);openSheet(nm(i),im,()=>clearInterval(tm))}
+  const u=()=>{im.src=haUrl+(a.entity_picture||'').replace(/&t=\d+/,'')+(a.entity_picture&&a.entity_picture.indexOf('?')>-1?'&':'?')+'t='+Date.now()};u();const tm=setInterval(u,3000);openSheet(nm(i),im,()=>clearInterval(tm))}
 function lightSheet(i){const a=S[i].attributes,b=E('div',null,'<div class="bn">'+nm(i)+'</div><div class="qs"></div>');
   const q=b.querySelector('.qs');onOff('light',[i]).forEach(x=>{const bt=E('button','ob',x[0]);bt.onclick=x[1];q.append(bt)});
   if((a.supported_color_modes||[]).some(m=>m!=='onoff')){const r=E('input');r.type='range';r.min=1;r.max=100;r.value=Math.round((a.brightness||255)/2.55);r.onchange=()=>call('light','turn_on',{entity_id:i,brightness_pct:+r.value});b.append(r)}
@@ -444,7 +435,7 @@ function addDev(){const have=areaIds();listSheet('Add device',Object.keys(S).fil
 function maPlayers(){const m=ids(['media_player']);const ma=m.filter(i=>reg[i]&&reg[i].platform==='music_assistant');return ma.length?ma:m.filter(i=>S[i].state!=='unavailable')}
 function curMp(){const ps=maPlayers();return cfg.mp&&S[cfg.mp]?cfg.mp:(ps.find(p=>S[p].state==='playing')||ps[0])}
 function drawNP(){const id=curMp(),N=$('#np');if(!id){N.innerHTML='<div class="h2">No media players found</div>';return}
-  const s=S[id],a=s.attributes,pic=a.entity_picture?(a.entity_picture.indexOf('http')===0?a.entity_picture:cfg.url+a.entity_picture):'',pl=s.state==='playing';
+  const s=S[id],a=s.attributes,pic=a.entity_picture?(a.entity_picture.indexOf('http')===0?a.entity_picture:haUrl+a.entity_picture):'',pl=s.state==='playing';
   N.innerHTML='<div class="npa">'+(pic?'<img src="'+pic+'">':ic('music'))+'</div><div style="min-width:0"><div class="npt">'+(a.media_title||'Nothing playing')+'</div><small>'+(a.media_artist||cap(s.state))+'</small><br><button class="chip" id="mp">'+ic('cast')+nm(id)+'</button><div class="ctl"><button id="pv">'+ic('prev')+'</button><button id="pp">'+ic(pl?'pause':'play')+'</button><button id="nx">'+ic('next')+'</button></div></div>';
   const c=(x,sv)=>{$(x).onclick=()=>call('media_player',sv,{entity_id:id})};c('#pv','media_previous_track');c('#pp','media_play_pause');c('#nx','media_next_track');
   $('#mp').onclick=()=>listSheet('Players',maPlayers().map(i=>({ico:'tv',name:nm(i),sub:cap(S[i].state),tap:()=>{cfg.mp=i;save();closeSheet();drawNP()}})))}
@@ -486,11 +477,11 @@ function openDrw(){const d=$('#drw'),sp=ids(['media_player']),wl=ids(['weather']
   d.innerHTML='<div class="grip"></div><h3>Rooms on this display</h3><small>Home control shows devices from these areas.</small><div class="qs">'+areas.map(a=>'<button class="sel'+(cfg.areas.indexOf(a.area_id)>-1?' on':'')+'" data-a="'+a.area_id+'">'+a.name+'</button>').join('')+'</div>'+
    '<h3>Speaker for this display</h3><small>Used for weather and assistant replies.</small><select id="sp"><option value="">None (use this device)</option>'+sp.map(i=>'<option value="'+i+'"'+(cfg.speaker===i?' selected':'')+'>'+nm(i)+'</option>').join('')+'</select>'+
    (wl.length>1?'<h3>Weather</h3><select id="wl">'+wl.map(i=>'<option value="'+i+'"'+(wxId()===i?' selected':'')+'>'+nm(i)+'</option>').join('')+'</select>':'')+
-   '<div class="qs"><button id="cs2">Connection settings</button><button id="rl">Reload</button></div>';
+   '<div class="qs"><button id="rl">Reload</button></div>';
   d.querySelectorAll('.sel').forEach(b=>b.onclick=()=>{const a=b.dataset.a,x=cfg.areas.indexOf(a);x>-1?cfg.areas.splice(x,1):cfg.areas.push(a);save();b.classList.toggle('on');drawTiles()});
   d.querySelector('#sp').onchange=e=>{cfg.speaker=e.target.value;save()};
   if(wl.length>1)d.querySelector('#wl').onchange=e=>{cfg.weather=e.target.value;save();location.reload()};
-  d.querySelector('#cs2').onclick=()=>{location.hash='#setup';location.reload()};d.querySelector('#rl').onclick=()=>location.reload();
+  d.querySelector('#rl').onclick=()=>location.reload();
   d.classList.add('open')}
 </script>
 </body>
