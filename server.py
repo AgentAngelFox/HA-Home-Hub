@@ -32,7 +32,7 @@ async def socket(request):
     if origin != f"{request.scheme}://{request.host}":
         raise web.HTTPForbidden()
     async with ClientSession(timeout=ClientTimeout(total=None, connect=10)) as session:
-        async with session.ws_connect(HOST + "/api/websocket", heartbeat=30) as upstream:
+        async with session.ws_connect(HOST + "/api/websocket", heartbeat=30, max_msg_size=32 * 1024 * 1024) as upstream:
             if (await upstream.receive_json(timeout=10)).get("type") != "auth_required":
                 raise web.HTTPBadGateway()
             await upstream.send_json({"type": "auth", "access_token": TOKEN})
