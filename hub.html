@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Home Hub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&display=swap">
+<style>
+:root{--bg:#f4f5f3;--card:#fff;--tx:#202124;--sub:#6b6f73;--bl:#1a56db;--tint:#dbe6f7;--ye:#fdf1c9;font-size:calc(100vmin/40)}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--tx);font:400 1rem/1.25 "Google Sans","Product Sans",Outfit,system-ui,sans-serif;display:flex;flex-direction:column}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+input,textarea,select{font:inherit;user-select:text;color:var(--tx)}
+small{font-size:.85rem;color:var(--sub)}
+.ic{width:1.6rem;height:1.6rem;flex:none}
+.row{display:flex;justify-content:space-between;align-items:center}
+.grow{flex:1}
+/* header */
+#top{display:flex;align-items:center;gap:2rem;padding:1rem 1.6rem .6rem;flex:none}
+#ast{display:grid;grid-template-columns:.7rem .7rem;gap:.22rem;padding:.5rem}
+#ast i{width:.7rem;height:.7rem;border-radius:50%}
+#tabs{display:flex;gap:2.2rem;flex:1}
+.tab{font-size:1.25rem;color:var(--sub);position:relative;padding:.3rem 0}
+.tab.sel{color:var(--tx)}
+.tab.sel::after{content:"";position:absolute;left:0;bottom:-.25rem;width:1.1rem;height:2px;background:var(--tx)}
+#clk{font-size:1.25rem}
+/* pager */
+#pager{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;min-height:0}
+#pager::-webkit-scrollbar,#tiles::-webkit-scrollbar{display:none}
+.pg{flex:none;width:100%;scroll-snap-align:start;padding:.8rem 1.6rem 3.4rem;display:flex;flex-direction:column;position:relative;min-height:0}
+.pg>div:first-child{flex:1;min-height:0}
+.card{background:var(--card);border-radius:1.5rem;padding:1.4rem;box-shadow:0 .1rem .5rem rgba(60,64,67,.13);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.dk{background:linear-gradient(160deg,#586a80,#38475b);color:#fff}
+.bl{background:linear-gradient(170deg,#6a8fc9,#2c5ca8);color:#fff}
+.dk small,.bl small{color:rgba(255,255,255,.8)}
+.g2{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1rem}
+.big{font-size:3.6rem;font-weight:300;line-height:1}
+.h2{font-size:1.7rem;line-height:1.2}
+hr{border:0;border-top:1px solid rgba(255,255,255,.35);margin:.8rem 0}
+/* home control */
+#hc{display:flex;gap:1rem}
+#cats{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:6.4rem;gap:.8rem;width:36%;flex:none;align-content:start}
+.cat{background:var(--card);border-radius:1.3rem;padding:1rem;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;font-size:1.15rem;box-shadow:0 .1rem .5rem rgba(60,64,67,.13)}
+#tiles{flex:1;display:grid;grid-auto-flow:column;grid-template-rows:1fr 1fr;grid-auto-columns:12rem;gap:.8rem;overflow-x:auto;scrollbar-width:none}
+.tile{position:relative;background:var(--card);border-radius:1.4rem;padding:1rem;display:flex;flex-direction:column;box-shadow:0 .1rem .5rem rgba(60,64,67,.13)}
+.tile.blu{background:var(--tint)}.tile.blu .ic{fill:var(--bl)}
+.tile.ye{background:var(--ye)}.tile.ye .ic{fill:#b06f00}
+.tr{display:flex;justify-content:space-between}
+.tb{font-size:1.9rem;margin-top:auto}
+.tn{color:var(--sub);font-size:1rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.x{position:absolute;top:.4rem;right:.4rem;background:#d93025;color:#fff;width:1.7rem;height:1.7rem;border-radius:50%;display:grid;place-items:center;font-size:.9rem;font-style:normal}
+.add{align-items:center;justify-content:center;font-size:1.1rem;color:var(--bl);text-align:center}
+#edit{position:absolute;right:1.6rem;bottom:.8rem;background:var(--card);border-radius:2rem;padding:.5rem 1.2rem;box-shadow:0 .1rem .4rem rgba(0,0,0,.2);color:var(--bl)}
+/* media + communicate */
+.mc{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+#np{flex-direction:row;gap:1.2rem;align-items:center;background:linear-gradient(160deg,#7a7e82,#4b4e52);color:#fff}
+.npa{width:10rem;height:10rem;flex:none;background:#e8eaed;border-radius:1rem;display:grid;place-items:center;overflow:hidden;color:#202124}
+.npa img{width:100%;height:100%;object-fit:cover}
+.npt{font-size:1.5rem;margin-bottom:.2rem}
+#np small{color:rgba(255,255,255,.8)}
+.chip{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.2);border-radius:2rem;padding:.45rem 1rem;margin:.7rem 0;font-size:.95rem}
+.ctl{display:flex;gap:1.2rem;align-items:center}
+.ctl .ic{width:2.2rem;height:2.2rem}
+.cm{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.cm .card{justify-content:space-between;font-size:1.6rem}
+.cm .ic{width:3rem;height:3rem;fill:var(--bl)}
+/* lists, sheets */
+.ov{position:fixed;left:0;right:0;top:0;bottom:0;background:var(--bg);transform:translateY(100%);transition:transform .28s;z-index:20;display:flex;flex-direction:column}
+.ov.open{transform:none}
+#sh{display:flex;align-items:center;gap:1rem;padding:1rem 1.6rem;font-size:1.4rem;flex:none}
+#sb{flex:1;overflow-y:auto;padding:0 1.6rem 1.6rem;min-height:0}
+.sb{display:flex;align-items:center;gap:.8rem;background:var(--card);border-radius:2rem;padding:.7rem 1.2rem;margin-bottom:.8rem}
+.sb input{flex:1;border:0;outline:0;background:none;font-size:1.1rem}
+.lr{display:flex;align-items:center;gap:1rem;padding:.9rem .4rem;border-top:1px solid #dadce0;font-size:1.2rem}
+.li{width:2.6rem;display:grid;place-items:center}
+.lm{flex:1;min-width:0}
+.ob{border:1px solid #c4c7cc;border-radius:2rem;padding:.55rem 1.3rem;color:var(--bl);background:var(--card)}
+.btn{background:var(--card);border-radius:2rem;padding:.8rem 1.6rem;color:var(--bl);display:inline-flex;gap:.5rem;align-items:center;font-size:1.1rem;box-shadow:0 .1rem .4rem rgba(0,0,0,.15)}
+.btn.pri{background:var(--bl);color:#fff}
+.bn{font-size:2.2rem;margin:1rem 0}
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(11.5rem,1fr));grid-auto-rows:9.5rem;gap:.8rem}
+.cmp textarea{width:100%;height:9rem;border:0;border-radius:1.2rem;padding:1rem;font-size:1.2rem;background:var(--card);resize:none;margin-bottom:1rem}
+.bub{max-width:80%;padding:.7rem 1.1rem;border-radius:1.2rem;margin:.4rem 0;font-size:1.1rem;background:var(--card)}
+.bub.me{margin-left:auto;background:var(--tint)}
+.qs{display:flex;gap:.6rem;flex-wrap:wrap;margin:.8rem 0}
+.qs button,.sel{border:1px solid #c4c7cc;border-radius:2rem;padding:.5rem 1.1rem;background:var(--card);font-size:1rem}
+.sel.on{background:var(--tint);border-color:var(--tint);color:var(--bl)}
+input[type=range]{width:100%;height:2rem;accent-color:#f9ab00}
+/* drawer */
+#drw{position:fixed;left:0;right:0;bottom:0;height:62%;background:var(--card);border-radius:1.8rem 1.8rem 0 0;box-shadow:0 -.3rem 1.2rem rgba(0,0,0,.25);transform:translateY(105%);transition:transform .28s;z-index:25;padding:1rem 1.8rem;overflow-y:auto}
+#drw.open{transform:none}
+#drw h3{font-weight:400;font-size:1.4rem;margin:.6rem 0 .2rem}
+#drw select{width:100%;padding:.7rem;font-size:1.05rem;border:1px solid #c4c7cc;border-radius:.8rem;margin:.4rem 0 .8rem;background:#fff}
+.grip{width:3rem;height:.3rem;border-radius:.2rem;background:#c0c3c6;margin:0 auto .4rem}
+#pz{position:fixed;left:0;right:0;bottom:0;height:3rem;display:flex;justify-content:center;align-items:flex-end;padding-bottom:.6rem;z-index:5}
+#pz i{width:3rem;height:.3rem;border-radius:.2rem;background:#c0c3c6}
+/* weather overlay */
+/* Weather changes with the live Home Assistant weather condition. No external images needed. */
+#wxo{background:linear-gradient(160deg,#8fb0cc,#4a647f 55%,#2f4258);color:#fff;transition:background-color .4s;isolation:isolate}
+#wxo[data-weather="sunny"]{background:radial-gradient(ellipse at 83% 8%,rgba(255,248,180,.75),transparent 39%),linear-gradient(160deg,#64b8f2,#2e83c7 60%,#17609e)}
+#wxo[data-weather="partlycloudy"]{background:radial-gradient(ellipse at 80% 17%,rgba(255,237,175,.52),transparent 36%),linear-gradient(155deg,#89b6d4,#6499be 48%,#3b6d97)}
+#wxo[data-weather="cloudy"]{background:radial-gradient(ellipse at 20% 14%,rgba(231,237,241,.3),transparent 46%),linear-gradient(155deg,#8294a5,#586e84 55%,#394e63)}
+#wxo[data-weather="rainy"],#wxo[data-weather="pouring"]{background:repeating-linear-gradient(108deg,transparent 0px,transparent 29px,rgba(200,226,245,.11) 30px,transparent 32px),linear-gradient(155deg,#5a7a99,#334d69 56%,#20364f)}
+#wxo[data-weather="snowy"],#wxo[data-weather="snowy-rainy"]{background:radial-gradient(circle at 21% 23%,rgba(255,255,255,.72) 1px,transparent 3px),radial-gradient(circle at 71% 63%,rgba(255,255,255,.7) 2px,transparent 4px),linear-gradient(155deg,#9ebbd1,#7096b6 55%,#506f91);background-size:75px 83px,112px 97px,auto}
+#wxo[data-weather="clear-night"]{background:radial-gradient(circle at 77% 18%,rgba(255,255,218,.85) 0,rgba(255,255,218,.55) 2px,transparent 4px),radial-gradient(circle at 20% 35%,rgba(227,238,255,.6) 1px,transparent 2px),linear-gradient(160deg,#1c305a,#101e3c 55%,#091427);background-size:125px 115px,83px 97px,auto}
+#wxo[data-weather="lightning"],#wxo[data-weather="lightning-rainy"],#wxo[data-weather="exceptional"]{background:radial-gradient(ellipse at 72% 20%,rgba(194,177,220,.28),transparent 43%),linear-gradient(155deg,#53546b,#34354f 60%,#20253d)}
+#wxo[data-weather="fog"]{background:linear-gradient(170deg,rgba(245,248,251,.15),transparent 70%),linear-gradient(155deg,#a1aeb5,#788c98 55%,#536f82)}
+#wxo[data-weather="windy"],#wxo[data-weather="windy-variant"]{background:repeating-linear-gradient(168deg,transparent 0px,transparent 52px,rgba(231,243,255,.08) 53px,transparent 58px),linear-gradient(155deg,#709bb8,#4d7599 55%,#294a70)}
+#wxo[data-weather="hail"]{background:radial-gradient(circle at 23% 28%,rgba(248,251,255,.65) 2px,transparent 4px),linear-gradient(155deg,#7c9bb5,#526d8a 55%,#2d4665);background-size:87px 99px,auto}
+#wxo small{color:rgba(255,255,255,.85)}
+#wxb{position:absolute;top:1rem;left:1.2rem;z-index:2;padding:.6rem}
+#wxb .ic{fill:#fff}
+#wxs{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.wp{flex:none;width:100%;scroll-snap-align:start;padding:2.6rem 2.6rem 1.6rem;display:flex;flex-direction:column}
+.p1{align-items:center;justify-content:center;text-align:center;font-size:1.6rem}
+.huge{font-size:11rem;font-weight:300;line-height:1.1}
+.hrs{display:flex;gap:2.6rem;overflow-x:auto;margin-top:auto;scrollbar-width:none}
+.hr{text-align:center;flex:none;font-size:1.1rem}
+.hr b{display:block;font-size:2rem;font-weight:400}
+.hr span{display:block;font-size:2rem;margin:.4rem 0}
+#wa{margin:1rem 0;font-size:1.2rem;min-height:1.5rem}
+#wq{display:flex;gap:.8rem;overflow-x:auto;scrollbar-width:none}
+#wq button{flex:none;border:2px solid rgba(255,255,255,.7);border-radius:2rem;padding:.7rem 1.4rem;font-size:1.15rem;color:#fff}
+/* setup */
+#setup{position:fixed;left:0;right:0;top:0;bottom:0;background:var(--bg);display:none;place-items:center;z-index:40}
+#setup form{background:var(--card);border-radius:1.6rem;padding:2rem;width:min(34rem,90vw);display:grid;gap:1rem}
+#setup input{padding:.9rem 1rem;border:1px solid #c4c7cc;border-radius:.8rem}
+#setup button{background:var(--bl);color:#fff;border-radius:2rem;padding:.9rem;text-align:center}
+</style>
+</head>
+<body>
+<header id="top">
+  <button id="ast" aria-label="Assistant"><i style="background:#4285f4"></i><i style="background:#ea4335"></i><i style="background:#fbbc04"></i><i style="background:#34a853"></i></button>
+  <nav id="tabs"></nav>
+  <div id="clk"></div>
+</header>
+<div id="pager">
+  <section class="pg"><div class="g2">
+    <button class="card bl" id="cr"></button><button class="card dk" id="cw"></button>
+    <button class="card" id="ch"></button><div class="card" id="cc"></div>
+  </div></section>
+  <section class="pg"><div id="hc"><div id="cats"></div><div id="tiles"></div></div><button id="edit">Edit</button></section>
+  <section class="pg"><div class="mc">
+    <div class="card" id="np"></div>
+    <div class="card" id="lib" style="overflow-y:auto"><div class="sb"><svg class="ic" viewBox="0 0 24 24"></svg><input id="q" type="search" placeholder="Search Music Assistant"></div><div id="res"></div></div>
+  </div></section>
+  <section class="pg"><div class="cm">
+    <button class="card" id="bc"></button><button class="card" id="ic"></button>
+  </div></section>
+</div>
+<div id="pz"><i></i></div>
+
+<div class="ov" id="sheet"><div id="sh"><button id="sback"></button><span id="st"></span></div><div id="sb"></div></div>
+<div class="ov" id="wxo"><button id="wxb"></button><div id="wxs"></div></div>
+<div id="drw"></div>
+<div id="setup"><form id="f">
+  <h2 style="font-weight:400">Connect to Home Assistant</h2>
+  <small>Create a long-lived access token in your Home Assistant profile.</small>
+  <input id="u" placeholder="Home Assistant address, e.g. http://homeassistant.local:8123">
+  <input type="password" id="t" placeholder="Long-lived access token">
+  <button>Save and connect</button>
+</form></div>
+
+<script>
+const I={light:"M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z",
+lock:"M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM9 8V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9z",
+tv:"M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zm-5-6l-7 4V7z",
+cam:"M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z",
+star:"M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z",
+bed:"M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z",
+power:"M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z",
+temp:"M15 13V5c0-1.66-1.34-3-3-3S9 3.34 9 5v8c-1.21.91-2 2.37-2 4 0 2.76 2.24 5 5 5s5-2.24 5-5c0-1.63-.79-3.09-2-4z",
+cover:"M4 4h16v3H4zM4 9h16v2H4zM4 13h16v2H4zM4 17h16v2H4z",
+walk:"M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z",
+music:"M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z",
+chev:"M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z",
+back:"M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
+search:"M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z",
+mic:"M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z",
+camp:"M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z",
+phone:"M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z",
+pause:"M6 19h4V5H6v14zm8-14v14h4V5h-4z",play:"M8 5v14l11-7z",prev:"M6 6h2v12H6zm3.5 6l8.5 6V6z",next:"M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z",
+cast:"M21 3H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11z"};
+const $=s=>document.querySelector(s),E=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e};
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):'',dom=i=>i.split('.')[0];
+const ic=(k,c)=>'<svg class="ic" viewBox="0 0 24 24" style="fill:'+(c||'currentColor')+'"><path d="'+I[k]+'"/></svg>';
+const CT={sunny:'Sunny','clear-night':'Clear',cloudy:'Cloudy',partlycloudy:'Partly cloudy',rainy:'Rain',pouring:'Heavy rain',snowy:'Snow','snowy-rainy':'Sleet',fog:'Fog',hail:'Hail',lightning:'Thunderstorms','lightning-rainy':'Thunderstorms',windy:'Windy','windy-variant':'Windy',exceptional:'Alert'};
+const WI={sunny:'☀️','clear-night':'🌙',cloudy:'☁️',partlycloudy:'⛅',rainy:'🌧️',pouring:'🌧️',snowy:'❄️','snowy-rainy':'🌨️',fog:'🌫️',hail:'🌨️',lightning:'🌩️','lightning-rainy':'⛈️',windy:'💨','windy-variant':'💨',exceptional:'⚠️'};
+
+let cfg={};try{cfg=JSON.parse(localStorage.hubCfg||'{}')}catch(e){}
+cfg.areas=cfg.areas||[];cfg.hidden=cfg.hidden||[];cfg.extra=cfg.extra||[];
+const save=()=>{try{localStorage.hubCfg=JSON.stringify(cfg)}catch(e){}};
+let ws,mid=1,pend={},S={},reg={},ent2area={},areas=[],fcD=[],fcH=[],fcIds={},loc='',edit=false,cid,built=false,maE,sheetCb,cur=0;
+let weatherSpeechToken=0, weatherSpeechWatch=null;
+const nm=i=>(S[i]&&S[i].attributes.friendly_name)||i;
+const aName=i=>(areas.find(a=>a.area_id===ent2area[i])||{}).name||'';
+const vis=i=>{const r=reg[i];return S[i]&&!(r&&(r.hidden_by||r.disabled_by||r.entity_category))};
+const ids=d=>Object.keys(S).filter(i=>d.indexOf(dom(i))>-1&&vis(i)).sort((a,b)=>nm(a).localeCompare(nm(b)));
+const part=()=>{const h=new Date().getHours();return h<5?'night':h<12?'morning':h<17?'afternoon':h<21?'evening':'night'};
+
+/* ---------- gestures ---------- */
+const atTop=(n,root)=>{for(;n&&n!==root;n=n.parentElement)if(n.scrollHeight>n.clientHeight+2&&n.scrollTop>0&&getComputedStyle(n).overflowY!=='visible')return false;return true};
+function swipe(el,h){let x,y,t;
+  el.addEventListener('touchstart',e=>{x=e.touches[0].clientX;y=e.touches[0].clientY;t=e.target},{passive:true});
+  el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x,dy=e.changedTouches[0].clientY-y;
+    if(Math.abs(dx)>Math.abs(dy)){if(dx<-70&&h.left)h.left();if(dx>70&&h.right)h.right()}
+    else{if(dy>80&&h.down&&atTop(t,el))h.down();if(dy<-60&&h.up)h.up()}},{passive:true})}
+
+/* ---------- setup + connection ---------- */
+if(location.hash==='#setup'||!cfg.token){
+  $('#setup').style.display='grid';
+  $('#u').value=cfg.url||(location.protocol.indexOf('http')===0?location.origin:'');$('#t').value=cfg.token||'';
+  $('#f').onsubmit=e=>{e.preventDefault();cfg.url=$('#u').value.trim().replace(/\/$/,'');cfg.token=$('#t').value.trim();save();location.hash='';location.reload()};
+}else connect();
+
+const send=o=>new Promise(r=>{o.id=mid++;pend[o.id]=r;ws.send(JSON.stringify(o))});
+const call=(d,s,data)=>ws.send(JSON.stringify({id:mid++,type:'call_service',domain:d,service:s,service_data:data}));
+function connect(){
+  ws=new WebSocket(cfg.url.replace(/^http/,'ws')+'/api/websocket');
+  ws.onclose=()=>setTimeout(connect,4000);
+  ws.onmessage=e=>{const m=JSON.parse(e.data);
+    if(m.type==='auth_required')ws.send(JSON.stringify({type:'auth',access_token:cfg.token}));
+    else if(m.type==='auth_invalid'){cfg.token='';save();location.hash='#setup';location.reload()}
+    else if(m.type==='auth_ok')init();
+    else if(m.type==='result'&&pend[m.id]){pend[m.id](m.result);delete pend[m.id]}
+    else if(m.type==='event'){
+      if(fcIds[m.id]){(fcIds[m.id]==='daily'?(fcD=m.event.forecast||[]):(fcH=m.event.forecast||[]));rr()}
+      else if(m.event.event_type==='state_changed'){const d=m.event.data;if(d.new_state)S[d.entity_id]=d.new_state;else delete S[d.entity_id];if(weatherSpeechWatch)weatherSpeechWatch(d);rr()}}};
+}
+async function init(){
+  const r=await Promise.all([send({type:'get_states'}),send({type:'config/area_registry/list'}),send({type:'config/entity_registry/list'}),send({type:'config/device_registry/list'}),send({type:'get_config'})]);
+  (r[0]||[]).forEach(s=>S[s.entity_id]=s);
+  areas=(r[1]||[]).sort((a,b)=>a.name.localeCompare(b.name));loc=(r[4]&&r[4].location_name)||'';
+  const dev={};(r[3]||[]).forEach(d=>dev[d.id]=d.area_id);
+  (r[2]||[]).forEach(e=>{reg[e.entity_id]=e;ent2area[e.entity_id]=e.area_id||dev[e.device_id]||null});
+  const rp=new URLSearchParams(location.search).get('room');
+  if(rp){const w=rp.toLowerCase().split(',').map(x=>x.trim());cfg.areas=areas.filter(a=>w.indexOf(a.name.toLowerCase())>-1).map(a=>a.area_id);save()}
+  ws.send(JSON.stringify({id:mid++,type:'subscribe_events',event_type:'state_changed'}));
+  const w=wxId();fcIds={};
+  if(w)['daily','hourly'].forEach(t=>{const o={type:'weather/subscribe_forecast',forecast_type:t,entity_id:w};ws.send(JSON.stringify(Object.assign(o,{id:mid++})));fcIds[o.id]=t});
+  if(!built){build();built=true}
+  drawAll();
+}
+let rt;const rr=()=>{clearTimeout(rt);rt=setTimeout(drawAll,250)};
+function drawAll(){drawDay();drawTiles();drawNP();if($('#wxo').classList.contains('open'))drawWxO()}
+
+/* ---------- static UI ---------- */
+function go(i){const p=$('#pager');p.scrollTo({left:i*p.clientWidth,behavior:'smooth'})}
+function tabsDraw(){
+  $('#tabs').innerHTML=['Your '+part(),'Home control','Media','Communicate'].map((t,i)=>'<button class="tab'+(i===cur?' sel':'')+'" data-i="'+i+'">'+t+'</button>').join('');
+  $('#tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>go(+b.dataset.i));
+  $('#clk').textContent=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}).replace(/\s?[AP]M/i,'');
+}
+tabsDraw();setInterval(tabsDraw,15000);
+$('#pager').onscroll=()=>{const p=$('#pager'),i=Math.round(p.scrollLeft/p.clientWidth);if(i!==cur){cur=i;tabsDraw()}};
+swipe($('#top'),{left:()=>cur<3&&go(cur+1),right:()=>cur>0&&go(cur-1)});
+
+function build(){
+  $('#cr').onclick=()=>go(2);$('#cw').onclick=openWx;$('#ch').onclick=()=>go(1);
+  $('#sback').innerHTML=ic('back');$('#sback').onclick=closeSheet;swipe($('#sheet'),{down:closeSheet,right:closeSheet});
+  $('#wxb').innerHTML=ic('back');$('#wxb').onclick=closeWx;swipe($('#wxo'),{down:closeWx});
+  $('#ast').onclick=assist;
+  const C=[['light','Lights','#e8a317'],['tv','Speakers & TVs','#2e7d32'],['cam','Cameras','#1a73e8'],['star','Routines','#7e57c2'],['lock','Locks','#1a56db'],['bed','Rooms','#5f6368']];
+  $('#cats').innerHTML=C.map(c=>'<button class="cat" data-k="'+c[0]+'">'+ic(c[0],c[2])+c[1]+'</button>').join('');
+  $('#cats').querySelectorAll('.cat').forEach(b=>b.onclick=()=>openCat(b.dataset.k));
+  $('#edit').onclick=()=>{edit=!edit;$('#edit').textContent=edit?'Done':'Edit';drawTiles()};
+  $('#lib .sb svg').outerHTML=ic('search','#5f6368');
+  $('#q').onchange=()=>maSearch($('#q').value.trim());maSearch('');
+  $('#bc').innerHTML=ic('camp')+'<div>Broadcast<br><small>Announce to every speaker</small></div>';
+  $('#ic').innerHTML=ic('phone')+'<div>Intercom<br><small>Choose a room or device</small></div>';
+  $('#bc').onclick=()=>compose('Broadcast',()=>({players:ids(['media_player']).filter(i=>S[i].state!=='unavailable'&&S[i].state!=='off'),sats:ids(['assist_satellite'])}));
+  $('#ic').onclick=intercom;
+  swipe($('#pz'),{up:openDrw});$('#pz').onclick=openDrw;swipe($('#drw'),{down:()=>$('#drw').classList.remove('open')});
+}
+
+/* ---------- day page ---------- */
+const wxId=()=>cfg.weather||Object.keys(S).find(k=>k.indexOf('weather.')===0);
+function wx(){const e=S[wxId()];if(!e)return null;const a=e.attributes,d=fcD[0]||{},h=fcH[0]||{};
+  return{c:e.state,t:Math.round(a.temperature),u:a.temperature_unit||'°',hi:d.temperature!=null?Math.round(d.temperature):null,lo:d.templow!=null?Math.round(d.templow):null,pop:d.precipitation_probability!=null?d.precipitation_probability:h.precipitation_probability}}
+function drawDay(){
+  const w=wx(),d=new Date();
+  $('#cr').innerHTML=ic('music')+'<div class="grow"></div><div class="h2">Play relaxing sounds</div>';
+  $('#cw').innerHTML=w?'<div class="row"><span style="font-size:1.2rem">'+(CT[w.c]||w.c)+'</span><span class="big">'+(WI[w.c]||'')+' '+w.t+'°</span></div><div class="grow"></div><hr><div class="row"><span>'+d.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+'</span><span>'+(w.hi!=null?w.hi+'° '+w.lo+'°':'')+'</span></div>':'No weather entity found';
+  const L=ids(['light']).filter(i=>S[i].state==='on').length,K=ids(['lock']).filter(i=>S[i].state!=='locked').length;
+  $('#ch').innerHTML=ic('light','#e8a317')+'<div class="grow"></div><div class="h2">'+L+' light'+(L===1?'':'s')+' on</div><small>'+(K?K+' unlocked':'Everything locked')+'</small>';
+  const ev=Object.keys(S).filter(i=>dom(i)==='calendar'&&S[i].attributes.message&&S[i].attributes.start_time).sort((a,b)=>new Date(S[a].attributes.start_time.replace(' ','T'))-new Date(S[b].attributes.start_time.replace(' ','T')))[0];
+  if(ev){const a=S[ev].attributes,sd=new Date(a.start_time.replace(' ','T'));
+    $('#cc').innerHTML=ic('star','#5f6368')+'<div class="grow"></div><div class="h2"><span style="color:var(--bl)">'+sd.toLocaleDateString([], {month:'short',day:'numeric'})+'</span> '+a.message+'</div><small>'+nm(ev)+' · '+(a.all_day?'All day':sd.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}))+'</small>'}
+  else $('#cc').innerHTML=ic('star','#5f6368')+'<div class="grow"></div><div class="h2">No upcoming events</div>';
+}
+
+/* ---------- speech helpers ---------- */
+function speak(t){const tts=Object.keys(S).find(k=>k.indexOf('tts.')===0);
+  if(tts&&cfg.speaker&&S[cfg.speaker])call('tts','speak',{entity_id:tts,media_player_entity_id:cfg.speaker,message:t});
+  else if(window.speechSynthesis)speechSynthesis.speak(new SpeechSynthesisUtterance(t))}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function listen(cb){if(!SR)return;const r=new SR();r.onresult=e=>cb(e.results[0][0].transcript);r.start()}
+
+/* ---------- weather overlay ---------- */
+const cname=c=>(CT[c]||c||'').toLowerCase();
+const dayN=f=>new Date(f.datetime).toLocaleDateString([], {weekday:'long',timeZone:'UTC'});
+const dsum=f=>cname(f.condition)+', high '+Math.round(f.temperature)+', low '+Math.round(f.templow)+(f.precipitation_probability?', '+f.precipitation_probability+' percent chance of rain':'');
+/* The first weather page is a spoken briefing. The next page opens when
+   the device's TTS playback finishes (or after a bounded fallback). */
+function closeWx(){
+  weatherSpeechToken++;
+  if(weatherSpeechWatch)weatherSpeechWatch=null;
+  $('#wxo').classList.remove('open');
+}
+function nextWeatherPage(token){
+  if(token!==weatherSpeechToken||!$('#wxo').classList.contains('open'))return;
+  const p=$('#wxs');
+  // Respect a manual swipe to the detailed forecast during the briefing.
+  if(p.scrollLeft<p.clientWidth*.5)p.scrollTo({left:p.clientWidth,behavior:'smooth'});
+}
+function weatherBriefing(text,token){
+  const tts=Object.keys(S).find(k=>k.indexOf('tts.')===0);
+  const player=cfg.speaker&&S[cfg.speaker]?cfg.speaker:null;
+  // With HA TTS we cannot use the service call response as an audio-ended event.
+  // Watch the chosen media player's playing->not-playing state transition.
+  if(tts&&player&&ws&&ws.readyState===WebSocket.OPEN){
+    let started=false,done=false;
+    const finish=()=>{if(done)return;done=true;clearTimeout(limit);if(weatherSpeechWatch===watch)weatherSpeechWatch=null;nextWeatherPage(token)};
+    const watch=d=>{
+      if(token!==weatherSpeechToken){finish();return}
+      if(d.entity_id!==player||!d.new_state)return;
+      const state=d.new_state.state;
+      if(state==='playing')started=true;
+      else if(started&&(state==='idle'||state==='off'||state==='paused'||state==='standby'))finish();
+    };
+    weatherSpeechWatch=watch;
+    // Fallback for receivers that don't expose playback state or stop events.
+    const limit=setTimeout(finish,45000);
+    call('tts','speak',{entity_id:tts,media_player_entity_id:player,message:text});
+    return;
+  }
+  // Browser speechSynthesis offers an actual onend event if supported.
+  if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
+    let done=false;
+    const finish=()=>{if(done)return;done=true;clearTimeout(limit);nextWeatherPage(token)};
+    const limit=setTimeout(finish,30000);
+    try{
+      const utterance=new SpeechSynthesisUtterance(text);
+      utterance.onend=finish;utterance.onerror=finish;
+      speechSynthesis.speak(utterance);
+    }catch(e){finish()}
+    return;
+  }
+  // No available speech engine: don't strand the user on the intro page.
+  setTimeout(()=>nextWeatherPage(token),1200);
+}
+function openWx(){
+  const w=wx();if(!w)return;
+  const token=++weatherSpeechToken;
+  weatherSpeechWatch=null;
+  drawWxO();$('#wxo').classList.add('open');$('#wxs').scrollLeft=0;
+  const text="It's "+w.t+' degrees and '+cname(w.c)+(loc?' in '+loc:'')+'.'+
+    (w.hi!=null?" Today's high is "+w.hi+' and the low is '+w.lo+'.':'')+
+    (w.pop!=null?" There's a "+w.pop+' percent chance of rain.':'');
+  weatherBriefing(text,token);
+}
+function drawWxO(){const w=wx();if(!w)return;
+  $('#wxo').setAttribute('data-weather',w.c||'cloudy');
+  const hrs=[{temperature:w.t,condition:w.c,datetime:null}].concat(fcH.filter(f=>new Date(f.datetime)>Date.now()).slice(0,11));
+  const hl=(w.hi!=null?'↑ '+w.hi+'° ↓ '+w.lo+'° ':'')+(w.pop!=null?'☂ '+w.pop+'%':'');
+  const keep=$('#wxs').scrollLeft;
+  $('#wxs').innerHTML='<div class="wp p1"><small style="font-size:1.6rem">Currently</small><div class="huge">'+w.t+w.u+'</div><div style="font-size:2.2rem">'+hl+'</div></div>'+
+   '<div class="wp"><div class="row" style="align-items:flex-start"><div><div style="font-size:3.4rem">'+(CT[w.c]||w.c)+'</div><div style="font-size:1.5rem;margin:.4rem 0">'+(loc||'Home')+' &nbsp; '+hl+'</div><small>'+new Date().toLocaleDateString([], {weekday:'long'})+' · '+cfg_src()+'</small></div><div style="text-align:right"><small>Currently</small><div class="big" style="font-size:4.6rem">'+w.t+w.u+'</div></div></div>'+
+   '<div class="hrs">'+hrs.map((f,i)=>'<div class="hr"><b>'+Math.round(f.temperature)+'°</b><span>'+(WI[f.condition]||'')+'</span>'+(i?new Date(f.datetime).toLocaleTimeString([], {hour:'numeric'}).replace(' ',''):'Now')+'</div>').join('')+'</div>'+
+   '<div id="wa"></div><div id="wq"><button data-k="w">What about this weekend?</button><button data-k="t">What about tomorrow?</button><button data-k="r">When will it rain?</button></div></div>';
+  $('#wxs').scrollLeft=keep;
+  $('#wq').querySelectorAll('button').forEach(b=>b.onclick=()=>{const t=ans(b.dataset.k);$('#wa').textContent=t;speak(t)});
+}
+const cfg_src=()=>(S[wxId()]&&S[wxId()].attributes.attribution)||'Home Assistant weather';
+function ans(k){
+  if(!fcD.length)return "I don't have forecast data yet.";
+  if(k==='t'){const f=fcD[1]||fcD[0];return 'Tomorrow, '+dayN(f)+': '+dsum(f)+'.'}
+  if(k==='w'){const f=fcD.filter(x=>[0,6].indexOf(new Date(x.datetime).getUTCDay())>-1).slice(0,2);return f.length?f.map(x=>dayN(x)+': '+dsum(x)).join('. ')+'.':'The weekend is past the end of the forecast.'}
+  const wet=f=>f.precipitation_probability>=50||/rain|pouring|snow|lightning|hail/.test(f.condition||'');
+  const h=fcH.find(f=>new Date(f.datetime)>Date.now()&&wet(f));
+  if(h)return 'Rain is likely around '+new Date(h.datetime).toLocaleTimeString([], {hour:'numeric'})+' ('+(h.precipitation_probability||'?')+' percent).';
+  const d=fcD.find(wet);return d?'Rain is likely '+(dayN(d)===dayN(fcD[0])?'today':'on '+dayN(d))+'.':'No rain in the forecast.'}
+
+/* ---------- sheets ---------- */
+function openSheet(t,body,cb){$('#st').textContent=t;$('#sb').innerHTML='';$('#sb').append(body);sheetCb=cb;$('#sheet').classList.add('open')}
+function closeSheet(){$('#sheet').classList.remove('open');if(sheetCb){sheetCb();sheetCb=null}}
+function listSheet(title,rows){
+  const b=E('div',null,'<div class="sb">'+ic('search','#5f6368')+'<input placeholder="Search devices"></div><div class="lst"></div>'),L=b.querySelector('.lst'),q=b.querySelector('input');
+  const paint=()=>{const f=q.value.toLowerCase();L.innerHTML='';
+    rows.filter(r=>!f||r.name.toLowerCase().indexOf(f)>-1).forEach(r=>{
+      const el=E('div','lr','<div class="li">'+ic(r.ico,r.col)+'</div><div class="lm"><div>'+r.name+'</div><small>'+(r.sub||'')+'</small></div>');
+      (r.acts||[]).forEach(a=>{const bt=E('button','ob',a[0]);bt.onclick=e=>{e.stopPropagation();a[1]()};el.append(bt)});
+      if(r.tap)el.onclick=r.tap;L.append(el)})};
+  q.oninput=paint;paint();openSheet(title,b)}
+const onOff=(d,l)=>[['Off',()=>call(d,'turn_off',{entity_id:l})],['On',()=>call(d,'turn_on',{entity_id:l})]];
+function openCat(k){
+  if(k==='light'){const L=ids(['light']),rows=[{ico:'light',col:'#e8a317',name:'All lights',sub:L.length+' lights',acts:onOff('light',L)}];
+    areas.forEach(a=>{const g=L.filter(i=>ent2area[i]===a.area_id);if(g.length)rows.push({ico:'light',col:'#e8a317',name:a.name,sub:g.length+(g.length>1?' lights':' light'),acts:onOff('light',g)})});
+    L.forEach(i=>rows.push({ico:'light',col:'#e8a317',name:nm(i),sub:cap(S[i].state)+(aName(i)?' · '+aName(i):''),acts:onOff('light',[i]),tap:()=>lightSheet(i)}));
+    return listSheet('Lights',rows)}
+  if(k==='lock')return listSheet('Locks',ids(['lock']).map(i=>({ico:'lock',col:'#1a56db',name:nm(i),sub:cap(S[i].state),acts:[['Lock',()=>call('lock','lock',{entity_id:i})],['Unlock',()=>call('lock','unlock',{entity_id:i})]]})));
+  if(k==='tv')return listSheet('Speakers & TVs',ids(['media_player']).map(i=>({ico:'tv',col:'#2e7d32',name:nm(i),sub:cap(S[i].state)+(S[i].attributes.media_title?' · '+S[i].attributes.media_title:''),acts:[['Pause',()=>call('media_player','media_pause',{entity_id:i})],['Play',()=>call('media_player','media_play',{entity_id:i})]]})));
+  if(k==='cam')return listSheet('Cameras',ids(['camera']).map(i=>({ico:'cam',col:'#1a73e8',name:nm(i),sub:cap(S[i].state),tap:()=>camSheet(i)})));
+  if(k==='star')return listSheet('Routines',ids(['scene','script']).map(i=>({ico:'star',col:'#7e57c2',name:nm(i),sub:cap(dom(i)),acts:[['Run',()=>call(dom(i),'turn_on',{entity_id:i})]]})));
+  listSheet('Rooms',areas.map(a=>{const g=Object.keys(S).filter(i=>TD.indexOf(dom(i))>-1&&vis(i)&&ent2area[i]===a.area_id&&okBS(i));
+    return{ico:'bed',col:'#5f6368',name:a.name,sub:g.length+' devices',tap:()=>{const gr=E('div','tg');g.forEach(i=>gr.append(tileEl(i)));openSheet(a.name,gr)}}}))}
+function camSheet(i){const a=S[i].attributes,im=E('img');im.style.cssText='width:100%;border-radius:1rem';
+  const u=()=>{im.src=cfg.url+(a.entity_picture||'').replace(/&t=\d+/,'')+(a.entity_picture&&a.entity_picture.indexOf('?')>-1?'&':'?')+'t='+Date.now()};u();const tm=setInterval(u,3000);openSheet(nm(i),im,()=>clearInterval(tm))}
+function lightSheet(i){const a=S[i].attributes,b=E('div',null,'<div class="bn">'+nm(i)+'</div><div class="qs"></div>');
+  const q=b.querySelector('.qs');onOff('light',[i]).forEach(x=>{const bt=E('button','ob',x[0]);bt.onclick=x[1];q.append(bt)});
+  if((a.supported_color_modes||[]).some(m=>m!=='onoff')){const r=E('input');r.type='range';r.min=1;r.max=100;r.value=Math.round((a.brightness||255)/2.55);r.onchange=()=>call('light','turn_on',{entity_id:i,brightness_pct:+r.value});b.append(r)}
+  openSheet(nm(i),b)}
+function climSheet(i){const a=S[i].attributes;let t=a.temperature||70;
+  const b=E('div',null,'<div class="bn">'+nm(i)+'</div><small>Now '+(a.current_temperature!=null?a.current_temperature+'°':'—')+' · '+cap(S[i].state)+'</small><div class="bn"><button class="btn" id="m">−</button> <span id="v">'+t+'°</span> <button class="btn" id="p">+</button></div>');
+  const set=d=>{t+=d;b.querySelector('#v').textContent=t+'°';call('climate','set_temperature',{entity_id:i,temperature:t})};
+  b.querySelector('#m').onclick=()=>set(-1);b.querySelector('#p').onclick=()=>set(1);openSheet(nm(i),b)}
+
+/* ---------- home control tiles ---------- */
+const TD=['lock','light','cover','climate','switch','fan','input_boolean','binary_sensor','camera'],BS=['motion','occupancy','presence','door','window','opening','garage_door'];
+const okBS=i=>dom(i)!=='binary_sensor'||BS.indexOf(S[i].attributes.device_class)>-1;
+function info(s){const i=s.entity_id,d=dom(i),a=s.attributes,st=s.state,on=st==='on',T=()=>call('homeassistant','toggle',{entity_id:i});
+  if(d==='lock')return{big:cap(st),ico:'lock',cls:st==='locked'?'blu':'ye',go:()=>call('lock',st==='locked'?'unlock':'lock',{entity_id:i})};
+  if(d==='binary_sensor'){const m=['motion','occupancy','presence'].indexOf(a.device_class)>-1;return{big:m?(on?'Motion':'No motion'):(on?'Open':'Closed'),ico:m?'walk':'lock',cls:on?'ye':''}}
+  if(d==='light')return{big:on?(a.brightness!=null?Math.round(a.brightness/2.55)+'%':'On'):'Off',ico:'light',cls:on?'ye':'',go:T,more:()=>lightSheet(i)};
+  if(d==='cover')return{big:cap(st),ico:'cover',cls:st==='open'?'ye':'blu',go:()=>call('cover','toggle',{entity_id:i})};
+  if(d==='climate')return{big:a.current_temperature!=null?Math.round(a.current_temperature)+'°':cap(st),ico:'temp',cls:st!=='off'?'blu':'',go:()=>climSheet(i),more:()=>climSheet(i)};
+  if(d==='camera')return{big:'Camera',ico:'cam',go:()=>camSheet(i)};
+  return{big:on?'On':'Off',ico:'power',cls:on?'ye':'',go:T}}
+function tileEl(i){const t=info(S[i]),e=E('div','tile '+(t.cls||''));
+  e.innerHTML='<div class="tr">'+ic(t.ico)+(t.more&&!edit?'<span class="chev">'+ic('chev','#5f6368')+'</span>':'')+'</div><div class="tb">'+t.big+'</div><div class="tn">'+nm(i)+'<br><small>'+aName(i)+'</small></div>'+(edit?'<i class="x">✕</i>':'');
+  e.onclick=ev=>{if(edit)return dropDev(i);if(t.more&&ev.target.closest('.chev'))t.more();else if(t.go)t.go()};return e}
+function areaIds(){const b=Object.keys(S).filter(i=>TD.indexOf(dom(i))>-1&&vis(i)&&cfg.areas.indexOf(ent2area[i])>-1&&okBS(i)&&cfg.hidden.indexOf(i)<0);
+  return b.concat(cfg.extra.filter(i=>S[i]&&b.indexOf(i)<0)).sort((a,c)=>TD.indexOf(dom(a))-TD.indexOf(dom(c)))}
+function drawTiles(){const T=$('#tiles'),sl=T.scrollLeft;T.innerHTML='';
+  if(!cfg.areas.length){const b=E('button','tile blu add','Choose this display’s room');b.style.gridRow='1/3';b.onclick=openDrw;T.append(b);return}
+  areaIds().forEach(i=>T.append(tileEl(i)));
+  if(edit){const a=E('button','tile add','+ Add device');a.onclick=addDev;T.append(a)}
+  T.scrollLeft=sl}
+function dropDev(i){const x=cfg.extra.indexOf(i);if(x>-1)cfg.extra.splice(x,1);else cfg.hidden.push(i);save();drawTiles()}
+function addDev(){const have=areaIds();listSheet('Add device',Object.keys(S).filter(i=>TD.indexOf(dom(i))>-1&&vis(i)&&okBS(i)&&have.indexOf(i)<0).sort((a,b)=>nm(a).localeCompare(nm(b))).map(i=>({ico:info(S[i]).ico,name:nm(i),sub:aName(i)||dom(i),tap:()=>{cfg.hidden=cfg.hidden.filter(x=>x!==i);if(cfg.extra.indexOf(i)<0)cfg.extra.push(i);save();closeSheet();drawTiles()}})))}
+
+/* ---------- media (Music Assistant) ---------- */
+function maPlayers(){const m=ids(['media_player']);const ma=m.filter(i=>reg[i]&&reg[i].platform==='music_assistant');return ma.length?ma:m.filter(i=>S[i].state!=='unavailable')}
+function curMp(){const ps=maPlayers();return cfg.mp&&S[cfg.mp]?cfg.mp:(ps.find(p=>S[p].state==='playing')||ps[0])}
+function drawNP(){const id=curMp(),N=$('#np');if(!id){N.innerHTML='<div class="h2">No media players found</div>';return}
+  const s=S[id],a=s.attributes,pic=a.entity_picture?(a.entity_picture.indexOf('http')===0?a.entity_picture:cfg.url+a.entity_picture):'',pl=s.state==='playing';
+  N.innerHTML='<div class="npa">'+(pic?'<img src="'+pic+'">':ic('music'))+'</div><div style="min-width:0"><div class="npt">'+(a.media_title||'Nothing playing')+'</div><small>'+(a.media_artist||cap(s.state))+'</small><br><button class="chip" id="mp">'+ic('cast')+nm(id)+'</button><div class="ctl"><button id="pv">'+ic('prev')+'</button><button id="pp">'+ic(pl?'pause':'play')+'</button><button id="nx">'+ic('next')+'</button></div></div>';
+  const c=(x,sv)=>{$(x).onclick=()=>call('media_player',sv,{entity_id:id})};c('#pv','media_previous_track');c('#pp','media_play_pause');c('#nx','media_next_track');
+  $('#mp').onclick=()=>listSheet('Players',maPlayers().map(i=>({ico:'tv',name:nm(i),sub:cap(S[i].state),tap:()=>{cfg.mp=i;save();closeSheet();drawNP()}})))}
+async function maCall(sv,d){if(maE===undefined){const r=await send({type:'config_entries/get',domain:'music_assistant'});maE=(r&&r[0]&&r[0].entry_id)||null}
+  if(!maE)return null;const r=await send({type:'call_service',domain:'music_assistant',service:sv,service_data:Object.assign({config_entry_id:maE},d),return_response:true});return r&&r.response}
+async function maSearch(q){const R=$('#res');R.innerHTML='<small>Loading…</small>';let items=[];
+  try{if(q){const r=await maCall('search',{name:q,limit:5});if(r)['playlists','albums','tracks','artists','radio'].forEach(k=>items=items.concat(r[k]||[]))}
+    else{const r=await maCall('get_library',{media_type:'playlist',limit:12,order_by:'name'});items=(r&&r.items)||[]}}catch(e){}
+  R.innerHTML='';if(!items.length){R.innerHTML='<small>'+(maE===null?'Music Assistant integration not found.':'Nothing found.')+'</small>';return}
+  items.forEach(r=>{const el=E('div','lr','<div class="li">'+ic('music','#5f6368')+'</div><div class="lm"><div>'+r.name+'</div><small>'+cap(r.media_type||'')+((r.artists&&r.artists.length)?' · '+r.artists.map(x=>x.name).join(', '):'')+'</small></div>');
+    el.onclick=()=>call('media_player','play_media',{entity_id:curMp(),media_content_id:r.uri,media_content_type:r.media_type});R.append(el)})}
+
+/* ---------- communicate ---------- */
+const room=()=>cfg.areas.map(a=>(areas.find(x=>x.area_id===a)||{}).name).filter(Boolean).join(' and ')||'the hub';
+function announce(m,tg){const tts=Object.keys(S).find(k=>k.indexOf('tts.')===0),text='Message from '+room()+'. '+m;
+  if(tts&&tg.players.length)call('tts','speak',{entity_id:tts,media_player_entity_id:tg.players,message:text});
+  else if(tg.sats.length)call('assist_satellite','announce',{entity_id:tg.sats,message:text})}
+function compose(title,tgf){
+  const b=E('div','cmp','<textarea placeholder="Type your message"></textarea><div class="qs"><button class="btn" id="mc">'+ic('mic')+' Speak</button><button class="btn pri" id="sd">Send</button></div><small id="cs"></small>'),ta=b.querySelector('textarea');
+  if(!SR)b.querySelector('#mc').style.display='none';b.querySelector('#mc').onclick=()=>listen(t=>ta.value=t);
+  b.querySelector('#sd').onclick=()=>{const m=ta.value.trim();if(!m)return;const tg=tgf();announce(m,tg);b.querySelector('#cs').textContent='Sent to '+(tg.players.length+(tg.players.length?0:tg.sats.length))+' device(s)';ta.value=''};
+  openSheet(title,b)}
+function intercom(){const dv=ids(['assist_satellite','media_player']).filter(i=>i!==cfg.speaker&&S[i].state!=='unavailable');
+  listSheet('Intercom',dv.map(i=>({ico:dom(i)==='assist_satellite'?'mic':'tv',name:(aName(i)?aName(i)+' · ':'')+nm(i),sub:dom(i)==='assist_satellite'?'Voice assistant':'Speaker',tap:()=>compose(nm(i),()=>dom(i)==='assist_satellite'?{players:[],sats:[i]}:{players:[i],sats:[]})})))}
+
+/* ---------- assistant ---------- */
+function assist(){
+  const b=E('div',null,'<div id="chat"></div><div class="qs"><button>What’s the weather?</button><button>Which lights are on?</button><button>Is the front door locked?</button></div><div class="sb"><input id="ai" placeholder="Ask or tell me something"><button id="am">'+ic('mic','#5f6368')+'</button><button id="as" class="ob">Send</button></div>'),chat=b.querySelector('#chat'),inp=b.querySelector('#ai');
+  const bub=(t,me)=>{chat.append(E('div','bub'+(me?' me':''),t));chat.lastChild.scrollIntoView()};
+  const say=async t=>{if(!t)return;bub(t,1);inp.value='';const r=await send({type:'conversation/process',text:t,language:'en',conversation_id:cid});
+    const sp=r&&r.response&&r.response.speech&&r.response.speech.plain&&r.response.speech.plain.speech;cid=r&&r.conversation_id;bub(sp||'Sorry, I couldn’t reach the assistant.');if(sp)speak(sp)};
+  b.querySelectorAll('.qs button').forEach(x=>x.onclick=()=>say(x.textContent));b.querySelector('#as').onclick=()=>say(inp.value.trim());
+  inp.onkeydown=e=>{if(e.key==='Enter')say(inp.value.trim())};
+  if(!SR)b.querySelector('#am').style.display='none';b.querySelector('#am').onclick=()=>listen(say);
+  openSheet('Assistant',b)}
+
+/* ---------- drawer (per-display settings) ---------- */
+function openDrw(){const d=$('#drw'),sp=ids(['media_player']),wl=ids(['weather']);
+  d.innerHTML='<div class="grip"></div><h3>Rooms on this display</h3><small>Home control shows devices from these areas.</small><div class="qs">'+areas.map(a=>'<button class="sel'+(cfg.areas.indexOf(a.area_id)>-1?' on':'')+'" data-a="'+a.area_id+'">'+a.name+'</button>').join('')+'</div>'+
+   '<h3>Speaker for this display</h3><small>Used for weather and assistant replies.</small><select id="sp"><option value="">None (use this device)</option>'+sp.map(i=>'<option value="'+i+'"'+(cfg.speaker===i?' selected':'')+'>'+nm(i)+'</option>').join('')+'</select>'+
+   (wl.length>1?'<h3>Weather</h3><select id="wl">'+wl.map(i=>'<option value="'+i+'"'+(wxId()===i?' selected':'')+'>'+nm(i)+'</option>').join('')+'</select>':'')+
+   '<div class="qs"><button id="cs2">Connection settings</button><button id="rl">Reload</button></div>';
+  d.querySelectorAll('.sel').forEach(b=>b.onclick=()=>{const a=b.dataset.a,x=cfg.areas.indexOf(a);x>-1?cfg.areas.splice(x,1):cfg.areas.push(a);save();b.classList.toggle('on');drawTiles()});
+  d.querySelector('#sp').onchange=e=>{cfg.speaker=e.target.value;save()};
+  if(wl.length>1)d.querySelector('#wl').onchange=e=>{cfg.weather=e.target.value;save();location.reload()};
+  d.querySelector('#cs2').onclick=()=>{location.hash='#setup';location.reload()};d.querySelector('#rl').onclick=()=>location.reload();
+  d.classList.add('open')}
+</script>
+</body>
+</html>
