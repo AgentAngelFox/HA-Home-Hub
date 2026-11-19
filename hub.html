@@ -202,15 +202,17 @@ function swipe(el,h){let x,y,t;
     else{if(dy>80&&h.down&&atTop(t,el))h.down();if(dy<-60&&h.up)h.up()}},{passive:true})}
 
 /* ---------- setup + connection ---------- */
+if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) cfg = {};
 delete cfg.token;
 delete cfg.url;
 save();
-connect();
 
 const send=o=>new Promise(r=>{o.id=mid++;pend[o.id]=r;ws.send(JSON.stringify(o))});
 const call=(d,s,data)=>ws.send(JSON.stringify({id:mid++,type:'call_service',domain:d,service:s,service_data:data}));
 function connect(){
-  ws=new WebSocket(location.origin.replace(/^http/,'ws')+'/api/websocket');
+  const endpoint = new URL('/api/websocket', location.href);
+  endpoint.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(endpoint.href);
   ws.onclose=()=>{ $('#setup').textContent='Home Assistant is unavailable. Check the hub settings in Arcane.'; $('#setup').style.display='grid'; setTimeout(connect,4000) };
   ws.onmessage=e=>{const m=JSON.parse(e.data);
     if(m.type==='auth_ok'){ haUrl=m.ha_url; $('#setup').style.display='none'; init() }
@@ -483,6 +485,7 @@ function openDrw(){const d=$('#drw'),sp=ids(['media_player']),wl=ids(['weather']
   if(wl.length>1)d.querySelector('#wl').onchange=e=>{cfg.weather=e.target.value;save();location.reload()};
   d.querySelector('#rl').onclick=()=>location.reload();
   d.classList.add('open')}
+connect();
 </script>
 </body>
 </html>
