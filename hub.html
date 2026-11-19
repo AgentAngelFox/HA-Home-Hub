@@ -183,7 +183,10 @@ const CT={sunny:'Sunny','clear-night':'Clear',cloudy:'Cloudy',partlycloudy:'Part
 const WI={sunny:'☀️','clear-night':'🌙',cloudy:'☁️',partlycloudy:'⛅',rainy:'🌧️',pouring:'🌧️',snowy:'❄️','snowy-rainy':'🌨️',fog:'🌫️',hail:'🌨️',lightning:'🌩️','lightning-rainy':'⛈️',windy:'💨','windy-variant':'💨',exceptional:'⚠️'};
 
 let cfg={};try{cfg=JSON.parse(localStorage.hubCfg||'{}')}catch(e){}
-cfg.areas=cfg.areas||[];cfg.hidden=cfg.hidden||[];cfg.extra=cfg.extra||[];
+if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) cfg = {};
+for (const key of ['areas', 'hidden', 'extra']) {
+  if (!Array.isArray(cfg[key])) cfg[key] = [];
+}
 const save=()=>{try{localStorage.hubCfg=JSON.stringify(cfg)}catch(e){}};
 let haUrl='',ws,mid=1,pend={},S={},reg={},ent2area={},areas=[],fcD=[],fcH=[],fcIds={},loc='',edit=false,cid,built=false,maE,sheetCb,cur=0;
 let weatherSpeechToken=0, weatherSpeechWatch=null;
@@ -202,7 +205,6 @@ function swipe(el,h){let x,y,t;
     else{if(dy>80&&h.down&&atTop(t,el))h.down();if(dy<-60&&h.up)h.up()}},{passive:true})}
 
 /* ---------- setup + connection ---------- */
-if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) cfg = {};
 delete cfg.token;
 delete cfg.url;
 save();
@@ -212,18 +214,42 @@ const call=(d,s,data)=>ws.send(JSON.stringify({id:mid++,type:'call_service',doma
 function connect(){
   const endpoint = new URL('/api/websocket', location.href);
   endpoint.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(endpoint.href);
-  ws.onclose=()=>{ $('#setup').textContent='Home Assistant is unavailable. Check the hub settings in Arcane.'; $('#setup').style.display='grid'; setTimeout(connect,4000) };
-  ws.onmessage=e=>{const m=JSON.parse(e.data);
-    if(m.type==='auth_ok'){ haUrl=m.ha_url; $('#setup').style.display='none'; init() }
+  const socket = ws = new WebSocket(endpoint.href);
+  let authenticated = false;
+  socket.onclose = () => {
+    for (const resolve of Object.values(pend)) resolve(null);
+    pend = {};
+    $('#setup').textContent = authenticated
+      ? 'Connection lost while using Home Assistant. Reconnecting…'
+      : 'The hub could not connect to Home Assistant. Retrying…';
+    $('#setup').style.display = 'grid';
+    setTimeout(connect, 4000);
+  };
+  socket.onmessage=e=>{const m=JSON.parse(e.data);
+    if(m.type==='auth_ok'){
+      authenticated = true;
+      haUrl = m.ha_url;
+      $('#setup').textContent = 'Loading Home Assistant devices…';
+      init(socket).then(() => {
+        if (socket.readyState === WebSocket.OPEN) $('#setup').style.display = 'none';
+      }).catch(error => {
+        console.error('Could not initialize the hub', error);
+        if (socket.readyState === WebSocket.OPEN) socket.close();
+      });
+    }
     else if(m.type==='result'&&pend[m.id]){pend[m.id](m.result);delete pend[m.id]}
     else if(m.type==='event'){
       if(fcIds[m.id]){(fcIds[m.id]==='daily'?(fcD=m.event.forecast||[]):(fcH=m.event.forecast||[]));rr()}
       else if(m.event.event_type==='state_changed'){const d=m.event.data;if(d.new_state)S[d.entity_id]=d.new_state;else delete S[d.entity_id];if(weatherSpeechWatch)weatherSpeechWatch(d);rr()}}};
 }
-async function init(){
+async function init(socket){
   const r=await Promise.all([send({type:'get_states'}),send({type:'config/area_registry/list'}),send({type:'config/entity_registry/list'}),send({type:'config/device_registry/list'}),send({type:'get_config'})]);
-  (r[0]||[]).forEach(s=>S[s.entity_id]=s);
+  if (socket.readyState !== WebSocket.OPEN) return;
+  if (!Array.isArray(r[0])) throw new Error('Home Assistant did not return device states');
+  S = {};
+  reg = {};
+  ent2area = {};
+  r[0].forEach(s=>S[s.entity_id]=s);
   areas=(r[1]||[]).sort((a,b)=>a.name.localeCompare(b.name));loc=(r[4]&&r[4].location_name)||'';
   const dev={};(r[3]||[]).forEach(d=>dev[d.id]=d.area_id);
   (r[2]||[]).forEach(e=>{reg[e.entity_id]=e;ent2area[e.entity_id]=e.area_id||dev[e.device_id]||null});
